@@ -74,6 +74,7 @@ body{
     margin-top: 5px;
     background: #252525;
     border-radius: 16px;
+    overflow-x: auto;
 }
 
 .nav_bt{
@@ -110,12 +111,17 @@ body{
     content: "SSH";
 }
 
-#todolist-bt::after{
-    content: "ToDo";
+#web-bt::after{
+    content: "Website";
 }
 
-#test3-bt::after{
-    content: "TEST1";
+#login-bt{
+    margin-top: auto;
+    margin-bottom: 50px;
+}
+
+#login-bt::after{
+    content: "User";
 }
 
 .nav_bt:hover{

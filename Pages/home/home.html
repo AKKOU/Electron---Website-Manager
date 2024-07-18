@@ -1,18 +1,18 @@
 
 <div class="main">
-    <b id="title">Login</b>
-    <form id="loginForm">
-        <label for="username">Account:</label>
-        <input type="text" required name="username" id="usr">
-        <br>
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="pwd">
-        <br>
-        <input type="submit" value="Login" id="submit">
-    </form>
+    <b id="title">Welcome! <p id="user-name"></p></b>
+    <div id="lines"></div>
+    <b id="timenow"></b>
 </div>
 
 <style>
+    #lines{
+        width: 100%;
+        height: 2px;
+        background-color: white;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
     body{
         color: aliceblue;
         position: relative;
@@ -20,9 +20,11 @@
     }
     #title{
         font-size: 50px;
+        user-select: none;
     }
     label{
         margin-right: 10px;
+        user-select: none;
     }
     label,input{
         margin-top: 20px;

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1 class="title_text">網頁Code區管理</h1>
+    <button id="addbt">新增內容</button>
+    <table class="web_content" id="web-content">
+        <thead>
+            <th>編號</th>
+            <th>名稱</th>
+            <th>語言</th>
+            <th>分類</th>
+            <th>狀態</th>
+            <th>操作</th>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <div style="margin-bottom: 200px;height: 5%;width: 100%;"></div>
+</body>
+
+<style>
+
+.title_text{
+    color: white;
+    position: relative;
+    text-align: center;
+    font-weight: 700;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+    
+.web_content{
+    position: relative;
+    margin: auto;
+    height: 100%;
+    top: 15%;
+    left: -3%;
+    background-color: rgb(87, 87, 87);
+    border-radius: 16px;
+    padding: 10px;
+    color: white;
+    text-align: center;
+}
+table{
+    width: 80%;
+}
+th,td{
+    padding: 10px;
+}
+th{
+    font-size: 35px;
+}
+td{
+    font-size: 25px;
+}
+.table_button{
+    border: solid crimson 2px;
+    font-size: 25px;
+    color: white;
+    background-color: #222;
+    cursor: pointer;
+    border-radius: 16px;
+    padding: 10px;
+    transition: 0.2s ease-in-out;
+}
+.table_button:hover{
+    border: solid #222 2px;
+    background-color: crimson;
+}
+
+#addbt{
+    border: solid rgb(91, 241, 77) 2px;
+    font-size: 25px;
+    color: white;
+    background-color: #222;
+    cursor: pointer;
+    border-radius: 16px;
+    padding: 10px;
+    transition: 0.2s ease-in-out;
+
+    
+    position: relative;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 20px;
+}
+
+#addbt:hover{
+    border: solid #222 2px;
+    background-color: rgb(91, 241, 77);
+}
+</style>
+
+</html>
+

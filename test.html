@@ -1,0 +1,17 @@
+<pre class="hljs" style="border-radius: 16px;padding: 10px;display: block; overflow-x: auto; padding: 0.5em; background: rgb(15, 15, 15); color: rgb(186, 186, 186);"><span class="hljs-meta" style="color: rgb(127, 127, 127);">#<span class="hljs-meta-keyword">include</span><span class="hljs-meta-string">&lt;stdio.h&gt;</span></span>
+<span class="hljs-meta" style="color: rgb(127, 127, 127);">#<span class="hljs-meta-keyword">include</span><span class="hljs-meta-string">&lt;iostream&gt;</span></span>
+<span class="hljs-meta" style="color: rgb(127, 127, 127);">#<span class="hljs-meta-keyword">include</span><span class="hljs-meta-string">&lt;vector&gt;</span></span>
+<span class="hljs-keyword" style="color: rgb(203, 120, 50);">using</span> <span class="hljs-keyword" style="color: rgb(203, 120, 50);">namespace</span> <span class="hljs-built_in" style="color: rgb(224, 196, 108);">std</span>;
+
+<span class="hljs-function"><span class="hljs-keyword" style="color: rgb(203, 120, 50);">int</span> <span class="hljs-title">main</span><span class="hljs-params" style="color: rgb(185, 185, 185);">()</span> </span>{
+  <span class="hljs-keyword" style="color: rgb(203, 120, 50);">long</span> <span class="hljs-keyword" style="color: rgb(203, 120, 50);">long</span> <span class="hljs-keyword" style="color: rgb(203, 120, 50);">int</span> data[<span class="hljs-number" style="color: rgb(104, 150, 186);">5</span>];
+
+  <span class="hljs-keyword" style="color: rgb(203, 120, 50);">while</span> (<span class="hljs-built_in" style="color: rgb(224, 196, 108);">scanf</span>(<span class="hljs-string" style="color: rgb(224, 196, 108);">"%lld%lld%lld%lld%lld"</span>, &amp; data[<span class="hljs-number" style="color: rgb(104, 150, 186);">0</span>], &amp; data[<span class="hljs-number" style="color: rgb(104, 150, 186);">1</span>], &amp; data[<span class="hljs-number" style="color: rgb(104, 150, 186);">2</span>], &amp; data[<span class="hljs-number" style="color: rgb(104, 150, 186);">3</span>], &amp; data[<span class="hljs-number" style="color: rgb(104, 150, 186);">4</span>]) != EOF) {
+    <span class="hljs-keyword" style="color: rgb(203, 120, 50);">if</span> (<span class="hljs-built_in" style="color: rgb(224, 196, 108);">abs</span>(data[<span class="hljs-number" style="color: rgb(104, 150, 186);">0</span>] - data[<span class="hljs-number" style="color: rgb(104, 150, 186);">2</span>]) + <span class="hljs-built_in" style="color: rgb(224, 196, 108);">abs</span>(data[<span class="hljs-number" style="color: rgb(104, 150, 186);">1</span>] - data[<span class="hljs-number" style="color: rgb(104, 150, 186);">3</span>]) &lt;= data[<span class="hljs-number" style="color: rgb(104, 150, 186);">4</span>]) {
+      <span class="hljs-built_in" style="color: rgb(224, 196, 108);">printf</span>(<span class="hljs-string" style="color: rgb(224, 196, 108);">"die\n"</span>);
+    } <span class="hljs-keyword" style="color: rgb(203, 120, 50);">else</span> {
+      <span class="hljs-built_in" style="color: rgb(224, 196, 108);">printf</span>(<span class="hljs-string" style="color: rgb(224, 196, 108);">"alive\n"</span>);
+    }
+  }
+  <span class="hljs-keyword" style="color: rgb(203, 120, 50);">return</span> <span class="hljs-number" style="color: rgb(104, 150, 186);">0</span>;
+}</pre>
