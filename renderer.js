@@ -242,6 +242,7 @@ function web_init(){
         });
     })
     .catch(err => {
+        alert("出現未知錯誤!");
         console.log(err);
     });
 }
@@ -310,7 +311,8 @@ function openEditPage(serialNum){
                             }
                         })
                         .catch(err => {
-                            alert(err)
+                            alert("出現一些未知錯誤，請稍後重試!")
+                            console.log(err);
                             loadPage('web');
                         })
                     }
@@ -357,7 +359,8 @@ function openEditPage(serialNum){
                                 alert("錯誤:編號重複!");
                             }
                             else{
-                                alert(err);
+                                alert("出現未知錯誤!");
+                                console.log(err);
                             }
                         })
                     })
@@ -373,13 +376,15 @@ function openEditPage(serialNum){
                                 loadPage('web');
                             })
                             .catch(err => {
-                                alert(err);
+                                alert("出現錯誤，無法刪除!");
+                                console.log(err);
                             })
                         }
                     })
                 })
             })
             .catch(err => {
-                alert(err)
+                alert("出現未知錯誤!");
+                console.log(err);
             })
 }
