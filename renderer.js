@@ -1,12 +1,19 @@
-const {ipcRenderer} = require('electron');
+const { ipcRenderer } = require('electron');
+const { Client } = require('ssh2');
+const { setInterval } = require('timers');
+
 const crypto = require('crypto')
 const mariadb = require('mariadb');
-const { promises } = require('dns');
+const cheerio = require('cheerio');
+const fs = require('fs');
+const conn = new Client();
 
 var isOpen = false;
 var isLogin = false;
+var isConnect = false;
 var username = "";
 let env;
+var lastnum_news;
 
 ipcRenderer.on('env',(event,received)=>{
     env = received;
@@ -21,7 +28,9 @@ window.onload = function() {
     const menu_bt = document.getElementById('menu-bt');
     const home_bt = document.getElementById('home-bt');
     const login_bt = document.getElementById('login-bt');
-    const web_bt = document.getElementById('web-bt');
+    const codemanage_bt = document.getElementById('codemanage-bt');
+    const admin_bt = document.getElementById('admin-bt');
+    const newsupdate_bt = document.getElementById('newsupdate-bt');
 
     loadPage('home');
 
@@ -42,13 +51,14 @@ window.onload = function() {
         const menu = document.getElementById('main-container');
         const home_bt = document.getElementById('home-bt');
         const admin_bt = document.getElementById('admin-bt');
-        const web_bt = document.getElementById('web-bt');
+        const codemanage_bt = document.getElementById('codemanage-bt');
         if(isOpen){
             menu_bt.style.letterSpacing = "1000px";
             home_bt.style.letterSpacing = "1000px";
             admin_bt.style.letterSpacing = "1000px";
-            web_bt.style.letterSpacing = "1000px";
+            codemanage_bt.style.letterSpacing = "1000px";
             login_bt.style.letterSpacing = "1000px";
+            newsupdate_bt.style.letterSpacing = "1000px";
 
             menu.style.transition = ".2s ease-in-out";
             menu.style.gridTemplateColumns = "70px 100%";
@@ -58,16 +68,19 @@ window.onload = function() {
             menu_bt.style.letterSpacing = "2px";
             home_bt.style.letterSpacing = "2px";
             admin_bt.style.letterSpacing = "2px";
-            web_bt.style.letterSpacing = "2px";
+            codemanage_bt.style.letterSpacing = "2px";
             login_bt.style.letterSpacing = "2px";
+            newsupdate_bt.style.letterSpacing = "2px";
             
             menu.style.transition = ".2s ease-in-out";
-            menu.style.gridTemplateColumns = "170px 100%";
+            menu.style.gridTemplateColumns = "270px 100%";
             isOpen = true;
         }
     })
 
     login_bt.addEventListener('click',function(){
+
+        closeMenu();
         if(!isLogin)
             loadPage('login');
         else
@@ -75,13 +88,48 @@ window.onload = function() {
     });
 
     home_bt.addEventListener('click',function(){
+
+        closeMenu();
         loadPage('home');
     })
 
-    web_bt.addEventListener('click',function(){
-        loadPage('web');
+    codemanage_bt.addEventListener('click',function(){
+        
+        closeMenu();
+        loadPage('codemanage');
     })
 
+    newsupdate_bt.addEventListener('click',function(){
+        closeMenu();
+        loadPage('newsupdate');
+    })
+
+    admin_bt.addEventListener('click',function(){
+        closeMenu();
+        loadPage('ssh');
+    })
+
+}
+
+function closeMenu(){
+    const menu = document.getElementById('main-container');
+    const home_bt = document.getElementById('home-bt');
+    const admin_bt = document.getElementById('admin-bt');
+    const codemanage_bt = document.getElementById('codemanage-bt');
+    const menu_bt = document.getElementById('menu-bt');
+    const login_bt = document.getElementById('login-bt');
+    const newsupdate_bt = document.getElementById('newsupdate-bt');
+
+    menu_bt.style.letterSpacing = "1000px";
+    home_bt.style.letterSpacing = "1000px";
+    admin_bt.style.letterSpacing = "1000px";
+    codemanage_bt.style.letterSpacing = "1000px";
+    login_bt.style.letterSpacing = "1000px";
+    newsupdate_bt.style.letterSpacing = "1000px";
+
+    menu.style.transition = ".2s ease-in-out";
+    menu.style.gridTemplateColumns = "70px 100%";
+    isOpen = false;
 }
 
 function loadPage(names){
@@ -95,8 +143,14 @@ function loadPage(names){
             if(names==='home'){
                 home_init();
             }
-            if(names==='web'){
-                web_init();
+            if(names==='codemanage'){
+                codemanage_init();
+            }
+            if(names==='newsupdate'){
+                newsupdate_init();
+            }
+            if(names==='ssh'){
+                admin_init();
             }
             document.getElementById('main-page').scrollTop = 0;
         })
@@ -120,7 +174,8 @@ function login_init(){
     const json = JSON.stringify(env);
     const dbdata = JSON.parse(json);
     const admin_bt = document.getElementById('admin-bt');
-    const web_bt = document.getElementById('web-bt');
+    const codemanage_bt = document.getElementById('codemanage-bt');
+    const newsupdate_bt = document.getElementById('newsupdate-bt');
 
     document.getElementById('loginForm').addEventListener('submit',function(event){
         event.preventDefault();
@@ -148,7 +203,8 @@ function login_init(){
                     alert("歡迎登入");
                     isLogin = true;
                     admin_bt.hidden = false;
-                    web_bt.hidden = false;
+                    codemanage_bt.hidden = false;
+                    newsupdate_bt.hidden = false;
                     loadPage('home');
                 }
                 else{
@@ -163,18 +219,189 @@ function login_init(){
 
 function logout_init(){
     const admin_bt = document.getElementById('admin-bt');
-    const web_bt = document.getElementById('web-bt');
+    const codemanage_bt = document.getElementById('codemanage-bt');
 
     if(confirm("確定要登出嗎?")){
         isLogin = false;
         admin_bt.hidden = true;
-        web_bt.hidden = true;
+        codemanage_bt.hidden = true;
+        newsupdate_bt.hidden = true;
         alert("登出成功!");
         loadPage('home');
     }
 }
 
-function web_init(){
+function admin_init(){
+    const json = JSON.stringify(env);
+    const dbdata = JSON.parse(json);
+
+    if(!isConnect){
+        conn.on('ready',() => {
+            updateTemp();
+            cpuusage();
+            ram();
+            systemid();
+            ipconfig();
+            netsend();
+            
+            setInterval(updateTemp,5000);
+            setInterval(cpuusage,5000);
+            setInterval(ram,5000);
+            setInterval(systemid,5000);
+            setInterval(ipconfig,5000);
+            setInterval(netsend,5000);
+            isConnect = true;
+    
+        }).connect({
+            host: dbdata.SERVER_HOST,
+            username: dbdata.SERVER_USER,
+            password: dbdata.SERVER_PASSWORD,
+            port: 22,
+            privateKey: fs.readFileSync('C:\\Users\\SHALI\\.ssh\\id_rsa')
+        });
+    
+        conn.on('error',(err) => {
+            alert('出現錯誤，請聯繫開發人員');
+            console.error('SSH connection error:',err);
+            loadPage('home');
+        })
+    }
+}
+
+function updateTemp() {
+    conn.exec('sensors', (err, stream) => {
+        if (err) throw err;
+        let output = '';
+        stream.on('data', (data) => {
+            output += data.toString();
+        }).on('close', () => {
+            const tempMatch = output.match(/temp1:\s+\+([\d\.]+)°C/);
+            if (tempMatch) {
+                const temperature = tempMatch[1];
+                document.getElementById('temp').innerText = `Temperature: ${temperature}°C`;
+                document.getElementById('status-icon').style.color = 'Green';
+            } else {
+                document.getElementById('temp').innerText = 'Temperature: N/A';
+            }
+        }).stderr.on('data', (data) => {
+            console.error('STDERR: ' + data);
+        });
+    });
+}
+
+function cpuusage() {
+    conn.exec('mpstat', (err, stream) => {
+        if (err) throw err;
+        let output = '';
+        stream.on('data', (data) => {
+            output += data.toString();
+        }).on('close', () => {
+            const deviceMatch = output.match(/Linux\s+([\d\.\-a-zA-Z]+)\s+\(([\w\-]+)\)/);
+            const cpuMatch = output.match(/all\s+\d+\.\d+\s+\d+\.\d+\s+\d+\.\d+\s+\d+\.\d+\s+(\d+\.\d+)/);
+            if(deviceMatch){
+                const deviceName = `${deviceMatch[1]}(${deviceMatch[2]})`;
+                document.getElementById('device').innerText = `Device: ${deviceName}`;
+            }
+            if (cpuMatch) {
+                const cpuUsage = cpuMatch[1];
+                document.getElementById('cpuuse').innerText = `CPU Usage: ${cpuUsage}%`;
+            } else {
+                document.getElementById('cpuuse').innerText = 'CPU Usage: N/A';
+            }
+        }).stderr.on('data', (data) => {
+            console.error('STDERR: ' + data);
+        });
+    });
+}
+
+function ram(){
+    conn.exec('free -h',(err,stream) => {
+        if (err) throw err;
+        let output = '';
+        stream.on('data', (data) => {
+            output += data.toString();
+        }).on('close', () => {
+            const match = output.match(/Mem:\s+(\S+)\s+(\S+)/);
+            if (match) {
+                const total = match[1];
+                const used = match[2];
+
+                document.getElementById('ram').innerText = `Total Memory: ${total}\nUsed Memory: ${used}`;
+            } else {
+                console.error('Unable to parse memory information');
+            }
+        }).stderr.on('data',(data) => {
+            console.error('STDERR:' + data);
+        });
+    })
+}
+
+function systemid(){
+    conn.exec('lsb_release -a',(err,stream) => {
+        if (err) throw err;
+        let output = '';
+        stream.on('data', (data) => {
+            output += data.toString();
+        }).on('close', () => {
+            const match = output.match(/Description:\s+(\S+)\s+(\S+)\s+(\S+)/);
+            if (match) {
+                const name = match[1]+match[2]+match[3];
+
+                document.getElementById('system').innerText = `System: ${name}`;
+            } else {
+                console.error('Unable to parse System information');
+            }
+        }).stderr.on('data',(data) => {
+            console.error('STDERR:' + data);
+        });
+    })
+}
+
+function ipconfig(){
+    conn.exec('ifconfig',(err,stream) => {
+        if (err) throw err;
+        let output = '';
+        stream.on('data', (data) => {
+            output += data.toString();
+        }).on('close', () => {
+            const ip = output.match(/inet\s+(\S+)/);
+            const mask = output.match(/netmask\s+(\S+)/);
+            const cast = output.match(/broadcast\s+(\S+)/);
+            if (ip) {
+
+                document.getElementById('ipconfig').innerText = `IP: ${ip[1]} \n Mask: ${mask[1]} \n Cast: ${cast[1]}`;
+            } else {
+                console.error('Unable to parse Internet information');
+            }
+        }).stderr.on('data',(data) => {
+            console.error('STDERR:' + data);
+        });
+    })
+}
+
+function netsend(){
+    conn.exec('ifstat -i eth0 1 1',(err,stream) => {
+        if (err) throw err;
+        let output = '';
+        stream.on('data', (data) => {
+            output += data.toString();
+        }).on('close', () => {
+            const match = output.match(/^\s*eth0\s+KB\/s in\s+KB\/s out\s+(\S+)\s+(\S+)/m);
+            if (match) {
+                const received = match[1];
+                const transmitted = match[2];
+
+                document.getElementById('internet').innerText = `Received: ${received} KB/s\nTransmitted: ${transmitted} KB/s`;
+            } else {
+                console.error('Unable to parse network statistics');
+            }
+        }).stderr.on('data',(data) => {
+            console.error('STDERR:' + data);
+        });
+    })
+}
+
+function codemanage_init(){
     const json = JSON.stringify(env);
     const dbdata = JSON.parse(json);
     var tablediv = document.querySelector('#web-content');
@@ -195,7 +422,7 @@ function web_init(){
 
         var addbt = document.getElementById('addbt');
         addbt.addEventListener('click',function(){
-            openEditPage('new');
+            code_Edit('new');
         })
 
         rows.forEach(row => {
@@ -226,6 +453,7 @@ function web_init(){
             }
             content_div.appendChild(Status);
 
+            var bt_td = document.createElement('td');
             var button = document.createElement('button');
 
             button.textContent = "編輯/更改";
@@ -234,9 +462,10 @@ function web_init(){
 
             button.addEventListener('click',function(){
                 console.log(row.serialNum);
-                openEditPage(row.serialNum);
+                code_Edit(row.serialNum);
             })
-            content_div.appendChild(button);
+            bt_td.appendChild(button);
+            content_div.appendChild(bt_td);
 
             tablediv.appendChild(content_div);
         });
@@ -247,9 +476,90 @@ function web_init(){
     });
 }
 
-function openEditPage(serialNum){
+function newsupdate_init(){
+    const json = JSON.stringify(env);
+    const dbdata = JSON.parse(json);
+    var tablediv = document.querySelector('#web-content');
 
-    fetch(`Pages/web/edit.html`)
+    let pool = mariadb.createPool({
+            host: dbdata.DB_HOST,
+            user: dbdata.DB_USER,
+            password: dbdata.DB_PASSWORD,
+            port: 3306,
+            database: dbdata.DB_NAME
+        });
+
+    pool.getConnection()
+    .then(conn => {
+        return conn.query('SELECT * FROM newsData')
+    })
+    .then(rows => {
+
+        var addbt = document.getElementById('addbt');
+        addbt.addEventListener('click',function(){
+            console.log("success");
+            news_Edit('new');
+        })
+
+        rows.forEach(row => {
+            var content_div = document.createElement('tr');
+
+            var ID = document.createElement('td');
+            ID.textContent = row.ID;
+            content_div.appendChild(ID);
+            lastnum_news = row.ID;
+            
+            var Date = document.createElement('td');
+            Date.textContent = row.Date;
+            content_div.appendChild(Date);
+            
+            var Content = document.createElement('td');
+            let list_text = row.Content;
+            let $ = cheerio.load(list_text);
+            //顯示成li
+            $('li').each(function(i,elem){
+                var li_ele = document.createElement('li');
+                li_ele.textContent = $(this).text();
+                li_ele.style.fontSize = '15px';
+                Content.appendChild(li_ele);
+            })
+            content_div.appendChild(Content);
+            //狀態bar
+            var Status = document.createElement('td');
+            if(row.Status==1){
+                Status.textContent = "顯示";
+            }
+            else{
+                Status.textContent = "隱藏";
+            }
+            content_div.appendChild(Status);
+
+            var bt_td = document.createElement('td');
+            var button = document.createElement('button');
+
+            button.textContent = "編輯/更改";
+            button.classList.add("table_button");
+            button.id = row.ID;
+
+            button.addEventListener('click',function(){
+                console.log(row.ID);
+                news_Edit(row.ID);
+            })
+            bt_td.appendChild(button);
+            content_div.appendChild(bt_td);
+
+            tablediv.appendChild(content_div);
+        });
+    })
+    .catch(err => {
+        alert("出現未知錯誤!");
+        console.log(err);
+    });
+}
+
+function code_Edit(serialNum){
+
+    fetch(`Pages/codemanage/edit.html`)
             .then(response => response.text())
             .then(data => {
                 document.getElementById('main-page').innerHTML = data;
@@ -313,7 +623,7 @@ function openEditPage(serialNum){
                         .catch(err => {
                             alert("出現一些未知錯誤，請稍後重試!")
                             console.log(err);
-                            loadPage('web');
+                            loadPage('codemanage');
                         })
                     }
 
@@ -352,7 +662,7 @@ function openEditPage(serialNum){
                             }
                         })
                         .then(() => {
-                            loadPage('web');
+                            loadPage('codemanage');
                         })
                         .catch(err => {
                             if(err.errno === 1062){
@@ -373,7 +683,146 @@ function openEditPage(serialNum){
                                 return conn.query("DELETE FROM `codeData` WHERE SerialNum = "+ serialNum);
                             })
                             .then(() => {
-                                loadPage('web');
+                                loadPage('codemanage');
+                            })
+                            .catch(err => {
+                                alert("出現錯誤，無法刪除!");
+                                console.log(err);
+                            })
+                        }
+                    })
+                })
+            })
+            .catch(err => {
+                alert("出現未知錯誤!");
+                console.log(err);
+            })
+}
+
+function news_Edit(serialNum){
+
+    fetch(`Pages/newsupdate/edit.html`)
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('main-page').innerHTML = data;
+                document.getElementById('main-page').scrollTop = 0;
+
+                return new Promise(reslove => {
+                    setTimeout(reslove,0);
+                })
+                .then(() => {
+
+                    const json = JSON.stringify(env);
+                    const dbdata = JSON.parse(json);
+
+                    //載入編輯畫面
+                    var title_text = document.getElementById('title-text');
+
+                    
+                    let pool = mariadb.createPool({
+                        host: dbdata.DB_HOST,
+                        user: dbdata.DB_USER,
+                        password: dbdata.DB_PASSWORD,
+                        port: 3306,
+                        database: dbdata.DB_NAME
+                    });
+
+                    if(serialNum == "new"){
+                        title_text.textContent = "新增內容";
+                        document.getElementById('input-num').value = ('0000' + (parseInt(lastnum_news) + 1)).slice(-4);
+                        document.getElementById('input-date').value = new Date().toISOString().split('T')[0];;
+                    }
+                    else{
+                        title_text.textContent = `編輯內容 (${serialNum})`;
+
+                        var input_num = document.getElementById('input-num');
+                        var input_date = document.getElementById('input-date');
+                        var input_content = document.getElementById('input-content');
+                        var input_img = document.getElementById('input-img');
+                        var input_status = document.getElementById('input-status');
+
+                        pool.getConnection()
+                        .then(conn => {
+                            return conn.query(`SELECT * FROM newsData WHERE ID = '${serialNum}'`);
+                        })
+                        .then(row => {
+                            var r_value = row[0];
+                            input_num.value = r_value.ID;
+                            input_date.value = r_value.Date;
+                            input_content.value = r_value.Content;
+                            input_img.value = r_value.Image;
+
+                            input_num.ariaReadOnly = true;
+                            if(r_value.Status==1){
+                                input_status.value = 'true';
+                            }
+                            else{
+                                input_status.value = 'false';
+                            }
+                        })
+                        .catch(err => {
+                            alert("出現一些未知錯誤，請稍後重試!")
+                            console.log(err);
+                            loadPage('newsupdate');
+                        })
+                    }
+
+                    //提交內容
+                    document.getElementById('submit-form').addEventListener('submit',function(event){
+
+                        event.preventDefault(); 
+
+                        pool.getConnection()
+                        .then(conn => {
+                            let num = document.getElementById('input-num').value;
+                            let date = document.getElementById('input-date').value;
+                            let content = document.getElementById('input-content').value;
+                            let img = document.getElementById('input-img').value;
+                            let status = document.getElementById('input-status').value;
+
+                            if(status == "true"){
+                                status = 1;
+                            }
+                            else{
+                                status = 0;
+                            }
+
+                            if(serialNum == "new"){
+                                return conn.query(
+                                    `INSERT INTO newsData(ID, Date, Content, Image, Status) VALUES (?, ?, ?, ?, ?);`,
+                                    [num, date, content, img, status]
+                                );
+                            }
+                            else{
+                                return conn.query(
+                                    `UPDATE newsData SET ID = ?, Date = ?, Content = ?, Image = ?, Status = ? WHERE ID = ?;`,
+                                    [num, date, content, img, status,serialNum]
+                                );
+                            }
+                        })
+                        .then(() => {
+                            loadPage('newsupdate');
+                        })
+                        .catch(err => {
+                            if(err.errno === 1062){
+                                alert("錯誤:編號重複!");
+                            }
+                            else{
+                                alert("出現未知錯誤!");
+                                console.log(err);
+                            }
+                        })
+                    })
+
+                    //刪除內容
+                    document.getElementById('delete_bt').addEventListener('click',function(){
+                        if(confirm("確定要刪除? 這動作無法回復。")){
+                            pool.getConnection()
+                            .then(conn => {
+                                return conn.query("DELETE FROM `newsData` WHERE ID = "+ serialNum);
+                            })
+                            .then(() => {
+                                loadPage('newsupdate');
                             })
                             .catch(err => {
                                 alert("出現錯誤，無法刪除!");

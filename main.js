@@ -7,7 +7,7 @@ function createWindow() {
     let win = new BrowserWindow({
         width: 1600,
         height: 1000,
-        minWidth: 750,
+        minWidth: 1300,
         minHeight:850,
         webPreferences: {
             nodeIntegration: true,
@@ -46,7 +46,10 @@ function createWindow() {
             DB_HOST: process.env.DB_HOST,
             DB_USER: process.env.DB_USER,
             DB_PASSWORD: process.env.DB_PASSWORD,
-            DB_NAME: process.env.DB_NAME
+            DB_NAME: process.env.DB_NAME,
+            SERVER_HOST: process.env.SERVER_HOST,
+            SERVER_USER: process.env.SERVER_USER,
+            SERVER_PASSWORD: process.env.SERVER_PASSWORD
         });
     })
 }

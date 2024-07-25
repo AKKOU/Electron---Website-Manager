@@ -111,8 +111,8 @@ body{
     content: "SSH";
 }
 
-#web-bt::after{
-    content: "Website";
+#codemanage-bt::after{
+    content: "Code展示管理";
 }
 
 #login-bt{
@@ -122,6 +122,10 @@ body{
 
 #login-bt::after{
     content: "User";
+}
+
+#newsupdate-bt::after{
+    content: "更新消息管理";
 }
 
 .nav_bt:hover{

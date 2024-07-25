@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="center-content">
+        <h1 id="title-text" style="margin-bottom: 20px;font-size: 50px;">編輯內容</h1>
+        <form id="submit-form">
+            
+            <div class="form_item">
+                <label for="serialNum">編號:</label>
+                <input class="input-text" readonly type="text" name="serialNum" id="input-num" required><br>
+            </div>
+            
+            <div class="form_item">
+                <label for="Date">日期:</label>
+                <input class="input-text" type="date" name="Date" id="input-date" required><br>
+            </div>
+            
+            <div class="form_item">
+                <label for="content">內容:</label>
+                <textarea name="Code" required style="height: 300px;" id="input-content"></textarea><br>
+            </div>
+            
+            <div class="form_item">
+                <label for="img">圖片:</label>
+                <input class="input-text" type="text" name="img" id="input-img" required><br>
+            </div>
+            
+            <div class="form_item">
+                <label for="Status">狀態:</label>
+                <select class="form_select" name="Status" id="input-status">
+                <option value="true">顯示</option>
+                <option value="false">隱藏</option>
+            </select><br>
+            </div>
+
+            <div class="button_row">
+                <button class="form_bt" type="submit" name="submit">確認</button>
+                <button type="button" name="delete" id="delete_bt">刪除</button>
+            </div>
+        </form>
+    </div>
+    <div style="margin-bottom: 700px;height: 20%;width: 100%;"></div>
+</body>
+
+<style>
+    .center-content{
+        position: relative;
+        width: 80%;  /* 設定 div 的寬度 */
+        height: 50%; /* 設定 div 的高度 */
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        text-align: center;
+    }
+
+    #submit-form{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 25px;
+        width: 100%;
+    }
+
+    .form_item{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 5%;
+        gap: 10px;
+        font-weight: 400;
+        width: 100%;
+    }
+
+    .button_row{
+        display: flex;
+        justify-content: center;
+        font-size: 25px;
+        width: 100%;
+        gap: 50px;
+    }
+
+    .form_bt{
+        border-radius: 16px;
+        background-color: #222;
+        border: solid rgb(91, 241, 77) 2px;
+        width: 15%;
+        color: white;
+        padding: 5px;
+        transition: .2s ease-in-out;
+    }
+
+    .form_bt:hover{
+        background-color: rgb(91, 241, 77);
+        border: solid #222 2px;
+    }
+
+    #delete_bt{
+        border-radius: 16px;
+        background-color: crimson;
+        border: solid #222 2px;
+        width: 15%;
+        color: white;
+        padding: 5px;
+        transition: .2s ease-in-out;
+    }
+
+    #delete_bt:hover{
+        background-color: #222;
+        border: solid crimson 2px;
+    }
+
+    .form_select{
+        border-radius: 16px;
+        background-color: #222;
+        border: solid crimson 2px;
+        width: 15%;
+        color: white;
+        padding: 5px;
+        transition: .2s ease-in-out;
+        text-align: center;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .input-text{
+        color: white;
+        outline: none;
+        width: 70%;
+        background-color: transparent;
+        border-width: 0 0 2px;
+        border-color: rgb(255, 255, 255);
+        transition: .2s ease-in-out;
+    }
+
+    .input-text:focus{
+        border-color: crimson;
+    }
+
+    #input-content{
+        color: white;
+        outline: none;
+        width: 70%;
+        background-color: transparent;
+        border: solid white;
+        border-radius: 16px;
+        padding: 10px;
+        transition: .2s ease-in-out;
+    }
+
+    #input-content:focus{
+        border-color: crimson;
+    }
+
+</style>
+</html>

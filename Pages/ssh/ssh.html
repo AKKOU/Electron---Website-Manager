@@ -1,12 +1,69 @@
-<div id="terminal"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+        <h1 id="server-status">伺服器狀態: <i class="bi bi-globe" id="status-icon" style="color: red;"></i></h1><br>
+        <div class="content">
+            <div class="infobox"><b id="device">Loading...</b></div>
+            <div class="infobox"> <b id="system">Loading...</b></div>
+        </div>
+        <div class="content">
+            <div class="infobox"> <b id="cpuuse">Loading...</b></div>
+            <div class="infobox"><b id="temp">Loading...</b></div>
+            <div class="infobox"> <b id="ram">Loading...</b></div>
+        </div>
+        <div class="content">
+            <div class="infobox"> <b id="ipconfig">Loading...</b></div>
+            <div class="infobox"> <b id="internet">Loading...</b></div>
+        </div>
+    </div>
+</body>
 
 <style>
-    #terminal{
-        background-color: #000000;
-        border-radius: 16px;
+    .container{
         position: absolute;
-        left: 50%;
         top: 50%;
+        left: 50%;
         transform: translate(-50%,-50%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        height: 100%;
     }
+    .content{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        flex-direction: row;
+        gap: 40px;
+        width: 70%;
+        margin-bottom: 50px;
+    }
+
+    .infobox{
+        background-color: #141414;
+        border-radius: 16px;
+        font-size: 20px;
+        padding: 20px;
+        width: 30%;
+        height: 150px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #server-status{
+        font-size: 30px;
+    }
+
 </style>
+</html>
