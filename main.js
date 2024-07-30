@@ -12,6 +12,14 @@ log.info('App Starting...');
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
+Object.defineProperty(app, 'isPackaged', {
+    get() {
+      return true;
+    }
+});
+
+autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml');
+
 autoUpdater.on('update-available',(info) => {
     dialog.showMessageBox({
         type:'info',
