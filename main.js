@@ -1,7 +1,42 @@
-const {app,BrowserWindow,ipcMain} = require('electron')
+const { info } = require('console');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const log = require('electron-log');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 
 require('dotenv').config();
+
+log.transports.file.level = 'info';
+log.info('App Starting...');
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+
+autoUpdater.on('update-available',(info) => {
+    dialog.showMessageBox({
+        type:'info',
+        title: 'Update available',
+        message: 'A new version is available, Do you want to update now?',
+        buttons: ['Yes','No']
+    }).then(result => {
+        if(result.response === 0){
+            autoUpdater.downloadUpdate();
+        }
+    });
+});
+
+autoUpdater.on('update-downloaded',(info) => {
+    dialog.showMessageBox({
+        type: 'info',
+        title: 'Update ready',
+        message: 'Install & Restart NOW?',
+        buttons: ['Yes','Later']
+    }).then(result => {
+        if(result.response === 0){
+            autoUpdater.quitAndInstall();
+        }
+    })
+})
 
 function createWindow() {
     let win = new BrowserWindow({
@@ -13,7 +48,8 @@ function createWindow() {
             nodeIntegration: true,
             preload: path.join(__dirname,'renderer.js'),
         },
-        frame: false
+        frame: false,
+        icon: 'img/icon.png'
     })
 
     //min-win
@@ -37,8 +73,8 @@ function createWindow() {
     })
 
     //load HTML
-    win.loadFile('index.html')
-    win.webContents.openDevTools();
+    win.loadFile('index.html');
+    // win.webContents.openDevTools();
 
     //Send DB data to renderer
     win.webContents.on('did-finish-load',()=>{

@@ -26,6 +26,7 @@ body{
     position: absolute;
     left: 50%;
     transform:translate(-50%);
+    cursor: pointer;
 }
 
 .title_control{
@@ -109,6 +110,10 @@ body{
 
 #admin-bt::after{
     content: "SSH";
+}
+
+#website-bt::after{
+    content: "網頁管理";
 }
 
 #codemanage-bt::after{

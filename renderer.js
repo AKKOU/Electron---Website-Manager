@@ -1,3 +1,4 @@
+//套件導入
 const { ipcRenderer } = require('electron');
 const { Client } = require('ssh2');
 const { setInterval } = require('timers');
@@ -6,31 +7,54 @@ const crypto = require('crypto')
 const mariadb = require('mariadb');
 const cheerio = require('cheerio');
 const fs = require('fs');
+const { count } = require('console');
+const path = require('path');
 const conn = new Client();
-
+//bool
 var isOpen = false;
 var isLogin = false;
 var isConnect = false;
+
+//empty value
 var username = "";
 let env;
 var lastnum_news;
+
+//buttons
+var menu_bt; 
+var home_bt; 
+var login_bt; 
+var website_bt; 
+var codemanage_bt;
+var admin_bt;
+var newsupdate_bt;
+var menu;
+//button array
+var buttons;
+var hidden_bt_array;
 
 ipcRenderer.on('env',(event,received)=>{
     env = received;
 })
 
 window.onload = function() {
-    console.log("load renderer")
     const min_bt = document.getElementById('control-min');
     const max_bt = document.getElementById('control-max');
     const close_bt = document.getElementById('control-close');
 
-    const menu_bt = document.getElementById('menu-bt');
-    const home_bt = document.getElementById('home-bt');
-    const login_bt = document.getElementById('login-bt');
-    const codemanage_bt = document.getElementById('codemanage-bt');
-    const admin_bt = document.getElementById('admin-bt');
-    const newsupdate_bt = document.getElementById('newsupdate-bt');
+    menu = document.getElementById('main-container')
+    menu_bt = document.getElementById('menu-bt');
+    home_bt = document.getElementById('home-bt');
+    login_bt = document.getElementById('login-bt');
+    website_bt = document.getElementById('website-bt');
+    codemanage_bt = document.getElementById('codemanage-bt');
+    admin_bt = document.getElementById('admin-bt');
+    newsupdate_bt = document.getElementById('newsupdate-bt');
+
+    buttons = [menu_bt , home_bt , login_bt , website_bt , codemanage_bt , admin_bt , newsupdate_bt];
+    hidden_bt_array = [admin_bt , codemanage_bt , newsupdate_bt , website_bt];
+
+    console.log("load renderer")
 
     loadPage('home');
 
@@ -48,30 +72,14 @@ window.onload = function() {
     });
 
     menu_bt.addEventListener('click',function(){
-        const menu = document.getElementById('main-container');
-        const home_bt = document.getElementById('home-bt');
-        const admin_bt = document.getElementById('admin-bt');
-        const codemanage_bt = document.getElementById('codemanage-bt');
         if(isOpen){
-            menu_bt.style.letterSpacing = "1000px";
-            home_bt.style.letterSpacing = "1000px";
-            admin_bt.style.letterSpacing = "1000px";
-            codemanage_bt.style.letterSpacing = "1000px";
-            login_bt.style.letterSpacing = "1000px";
-            newsupdate_bt.style.letterSpacing = "1000px";
-
-            menu.style.transition = ".2s ease-in-out";
-            menu.style.gridTemplateColumns = "70px 100%";
-            isOpen = false;
+            closeMenu();
         }
         else{
-            menu_bt.style.letterSpacing = "2px";
-            home_bt.style.letterSpacing = "2px";
-            admin_bt.style.letterSpacing = "2px";
-            codemanage_bt.style.letterSpacing = "2px";
-            login_bt.style.letterSpacing = "2px";
-            newsupdate_bt.style.letterSpacing = "2px";
-            
+            buttons.forEach(bt => {
+                bt.style.letterSpacing = "2px";
+            })
+
             menu.style.transition = ".2s ease-in-out";
             menu.style.gridTemplateColumns = "270px 100%";
             isOpen = true;
@@ -79,8 +87,6 @@ window.onload = function() {
     })
 
     login_bt.addEventListener('click',function(){
-
-        closeMenu();
         if(!isLogin)
             loadPage('login');
         else
@@ -88,70 +94,86 @@ window.onload = function() {
     });
 
     home_bt.addEventListener('click',function(){
-
-        closeMenu();
         loadPage('home');
     })
 
+    website_bt.addEventListener('click',function(){
+        loadPage('website');
+    })
+
     codemanage_bt.addEventListener('click',function(){
-        
-        closeMenu();
         loadPage('codemanage');
     })
 
     newsupdate_bt.addEventListener('click',function(){
-        closeMenu();
         loadPage('newsupdate');
     })
 
     admin_bt.addEventListener('click',function(){
-        closeMenu();
         loadPage('ssh');
     })
 
 }
 
 function closeMenu(){
-    const menu = document.getElementById('main-container');
-    const home_bt = document.getElementById('home-bt');
-    const admin_bt = document.getElementById('admin-bt');
-    const codemanage_bt = document.getElementById('codemanage-bt');
-    const menu_bt = document.getElementById('menu-bt');
-    const login_bt = document.getElementById('login-bt');
-    const newsupdate_bt = document.getElementById('newsupdate-bt');
 
-    menu_bt.style.letterSpacing = "1000px";
-    home_bt.style.letterSpacing = "1000px";
-    admin_bt.style.letterSpacing = "1000px";
-    codemanage_bt.style.letterSpacing = "1000px";
-    login_bt.style.letterSpacing = "1000px";
-    newsupdate_bt.style.letterSpacing = "1000px";
+    buttons.forEach(bt => {
+        bt.style.letterSpacing = "1000px";
+    })
 
     menu.style.transition = ".2s ease-in-out";
     menu.style.gridTemplateColumns = "70px 100%";
     isOpen = false;
 }
 
+function sql_connect(){
+    const json = JSON.stringify(env);
+    const dbdata = JSON.parse(json);
+
+    return pool = mariadb.createPool({
+        host: dbdata.DB_HOST,
+        user: dbdata.DB_USER,
+        password: dbdata.DB_PASSWORD,
+        port: 3306,
+        database: dbdata.DB_NAME
+    });
+}
+
 function loadPage(names){
-    fetch(`Pages/${names}/${names}.html`)
+
+    closeMenu();
+
+    fetch(path.join(__dirname,`Pages/${names}/${names}.html`))
         .then(response => response.text())
         .then(data => {
             document.getElementById('main-page').innerHTML = data;
-            if(names==='login'){
-                login_init();
+
+            switch(names){
+                case 'login':
+                    login_init();
+                    break;
+
+                case 'home':
+                    home_init();
+                    break;
+
+                case 'website':
+                    website_init();
+                    break;
+
+                case 'codemanage':
+                    codemanage_init();
+                    break;
+                    
+                case 'newsupdate':
+                    newsupdate_init();
+                    break;
+                    
+                case 'ssh':
+                    admin_init();
+                    break;
             }
-            if(names==='home'){
-                home_init();
-            }
-            if(names==='codemanage'){
-                codemanage_init();
-            }
-            if(names==='newsupdate'){
-                newsupdate_init();
-            }
-            if(names==='ssh'){
-                admin_init();
-            }
+
             document.getElementById('main-page').scrollTop = 0;
         })
         .catch(err => {
@@ -171,11 +193,6 @@ function home_init(){
 }
 
 function login_init(){
-    const json = JSON.stringify(env);
-    const dbdata = JSON.parse(json);
-    const admin_bt = document.getElementById('admin-bt');
-    const codemanage_bt = document.getElementById('codemanage-bt');
-    const newsupdate_bt = document.getElementById('newsupdate-bt');
 
     document.getElementById('loginForm').addEventListener('submit',function(event){
         event.preventDefault();
@@ -186,13 +203,7 @@ function login_init(){
         let hash = crypto.createHash('sha256');
         hash.update(password);
         
-        let pool = mariadb.createPool({
-            host: dbdata.DB_HOST,
-            user: dbdata.DB_USER,
-            password: dbdata.DB_PASSWORD,
-            port: 3306,
-            database: dbdata.DB_NAME
-        });
+        let pool = sql_connect();
         
         pool.getConnection()
             .then(conn => {
@@ -202,9 +213,9 @@ function login_init(){
                 if(rows.length > 0){
                     alert("歡迎登入");
                     isLogin = true;
-                    admin_bt.hidden = false;
-                    codemanage_bt.hidden = false;
-                    newsupdate_bt.hidden = false;
+                    hidden_bt_array.forEach(bt => {
+                        bt.hidden = false;
+                    })
                     loadPage('home');
                 }
                 else{
@@ -218,14 +229,14 @@ function login_init(){
 }
 
 function logout_init(){
-    const admin_bt = document.getElementById('admin-bt');
-    const codemanage_bt = document.getElementById('codemanage-bt');
 
     if(confirm("確定要登出嗎?")){
         isLogin = false;
-        admin_bt.hidden = true;
-        codemanage_bt.hidden = true;
-        newsupdate_bt.hidden = true;
+        
+        hidden_bt_array.forEach(bt => {
+            bt.hidden = true;
+        })
+
         alert("登出成功!");
         loadPage('home');
     }
@@ -401,18 +412,114 @@ function netsend(){
     })
 }
 
+function website_init(){
+    var tablediv = document.querySelector('#page-content');
+
+    let pool = sql_connect();
+
+    pool.getConnection()
+    .then(conn => {
+        return conn.query('SELECT UserIP FROM UserLoginData;');
+    })
+    .then(rows => {
+        document.getElementById('visitor').innerText = `Total Vistor: ${rows.length}`;
+    })
+
+    pool.getConnection()
+    .then(conn => {
+        return conn.query('SELECT * FROM PageStatus')
+    })
+    .then(rows => {
+
+        rows.forEach(row => {
+            var content_div = document.createElement('tr');
+
+            if(row.ID=='999'){
+                if(row.Status==1){
+                    document.getElementById('status-icon').style.color = "Green";
+                }
+                else{
+                    document.getElementById('status-icon').style.color = "Red";
+                }
+            }
+
+            var ID = document.createElement('td');
+            ID.textContent = row.ID;
+            content_div.appendChild(ID);
+            
+            var Name = document.createElement('td');
+            Name.textContent = row.Name;
+            content_div.appendChild(Name);
+            
+            var Status = document.createElement('td');
+            var bt_td = document.createElement('td');
+            var button = document.createElement('button');
+
+            if(row.Status==1){
+                Status.textContent = "顯示";
+                button.textContent = "關閉";
+                button.classList.add("table_button");
+            }
+            else{
+                Status.textContent = "隱藏";
+                button.textContent = "開啟";
+                button.classList.add("table_button_close");
+            }
+            content_div.appendChild(Status);
+
+            button.id = row.ID;
+
+            button.addEventListener('click',function(){
+                console.log(row.ID);
+                web_edit(row.ID);
+            })
+            bt_td.appendChild(button);
+            content_div.appendChild(bt_td);
+
+            tablediv.appendChild(content_div);
+        });
+    })
+    .catch(err => {
+        alert("出現未知錯誤!");
+        console.log(err);
+    });
+}
+
+function web_edit(ID){
+    var value = '';
+
+    let pool = sql_connect();
+
+    pool.getConnection()
+    .then(conn => {
+        return conn.query(`SELECT * FROM PageStatus WHERE ID = ${ID};`);
+    }).then(row => {
+        row.forEach(rows => {
+            value = rows['Status'];
+            if(value == 1){
+                value = 0;
+            }
+            else{
+                value = 1;
+            }
+        })
+    })
+    
+    pool.getConnection()
+    .then(conn => {
+        return conn.query(
+            `UPDATE PageStatus SET Status = ? WHERE ID = ?;`,
+            [ value, ID]
+        );
+    }).then(() => {
+        loadPage('website');
+    })
+}
+
 function codemanage_init(){
-    const json = JSON.stringify(env);
-    const dbdata = JSON.parse(json);
     var tablediv = document.querySelector('#web-content');
 
-    let pool = mariadb.createPool({
-            host: dbdata.DB_HOST,
-            user: dbdata.DB_USER,
-            password: dbdata.DB_PASSWORD,
-            port: 3306,
-            database: dbdata.DB_NAME
-        });
+    let pool = sql_connect();
 
     pool.getConnection()
     .then(conn => {
@@ -477,17 +584,9 @@ function codemanage_init(){
 }
 
 function newsupdate_init(){
-    const json = JSON.stringify(env);
-    const dbdata = JSON.parse(json);
     var tablediv = document.querySelector('#web-content');
 
-    let pool = mariadb.createPool({
-            host: dbdata.DB_HOST,
-            user: dbdata.DB_USER,
-            password: dbdata.DB_PASSWORD,
-            port: 3306,
-            database: dbdata.DB_NAME
-        });
+    let pool = sql_connect();
 
     pool.getConnection()
     .then(conn => {
@@ -570,20 +669,11 @@ function code_Edit(serialNum){
                 })
                 .then(() => {
 
-                    const json = JSON.stringify(env);
-                    const dbdata = JSON.parse(json);
-
                     //載入編輯畫面
                     var title_text = document.getElementById('title-text');
 
                     
-                    let pool = mariadb.createPool({
-                        host: dbdata.DB_HOST,
-                        user: dbdata.DB_USER,
-                        password: dbdata.DB_PASSWORD,
-                        port: 3306,
-                        database: dbdata.DB_NAME
-                    });
+                    let pool = sql_connect();
 
                     if(serialNum == "new"){
                         title_text.textContent = "新增內容";
@@ -712,20 +802,10 @@ function news_Edit(serialNum){
                 })
                 .then(() => {
 
-                    const json = JSON.stringify(env);
-                    const dbdata = JSON.parse(json);
-
                     //載入編輯畫面
                     var title_text = document.getElementById('title-text');
 
-                    
-                    let pool = mariadb.createPool({
-                        host: dbdata.DB_HOST,
-                        user: dbdata.DB_USER,
-                        password: dbdata.DB_PASSWORD,
-                        port: 3306,
-                        database: dbdata.DB_NAME
-                    });
+                    let pool = sql_connect();
 
                     if(serialNum == "new"){
                         title_text.textContent = "新增內容";

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+        <h1 id="web-status">網頁狀態: <i class="bi bi-globe" id="status-icon" style="color: red;"></i></h1><br>
+        <div class="content">
+            <div class="infobox"><b id="visitor">Loading...</b></div>
+            <div class="infobox"> <b id="totalvisit">Loading...</b></div>
+        </div>
+        <table class="page_content" id="page-content">
+            <thead>
+                <th>編號</th>
+                <th>名稱</th>
+                <th>狀態</th>
+                <th>操作</th>
+            </thead>
+            <tbody>
+    
+            </tbody>
+        </table>
+    </div>
+</body>
+
+<style>
+    .container{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        height: 100%;
+        margin-top: 5%;
+    }
+    .content{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        flex-direction: row;
+        gap: 40px;
+        width: 70%;
+        margin-bottom: 50px;
+    }
+
+    .page_content{
+        width: 100%;
+        background-color: rgb(87, 87, 87);
+        border-radius: 16px;
+        height:10%;
+        padding: 10px;
+        color: white;
+        text-align: center;
+        overflow: scroll;
+    }
+
+    table{
+        width: 80%;
+    }
+    th,td{
+        padding: 10px;
+    }
+    th{
+        font-size: 35px;
+    }
+    td{
+        font-size: 25px;
+    }
+
+    .infobox{
+        background-color: #141414;
+        border-radius: 16px;
+        font-size: 20px;
+        padding: 20px;
+        width: 30%;
+        height: 150px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #web-status{
+        font-size: 30px;
+    }
+
+    .table_button{
+        border: solid crimson 2px;
+        font-size: 25px;
+        color: white;
+        background-color: #222;
+        cursor: pointer;
+        border-radius: 16px;
+        padding: 10px;
+        transition: 0.2s ease-in-out;
+    }
+    .table_button:hover{
+        border: solid #222 2px;
+        background-color: crimson;
+    }
+
+    .table_button_close{
+        border: solid rgb(69, 233, 77) 2px;
+        font-size: 25px;
+        color: white;
+        background-color: #222;
+        cursor: pointer;
+        border-radius: 16px;
+        padding: 10px;
+        transition: 0.2s ease-in-out;
+    }
+    .table_button_close:hover{
+        border: solid #222 2px;
+        background-color: rgb(69, 233, 77);
+    }
+
+</style>
+</html>

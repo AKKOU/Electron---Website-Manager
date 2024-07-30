@@ -5,19 +5,46 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder",
+    "generate-icons": "electron-icon-builder --input=./img/icon.png --output=build --flatten"
   },
   "keywords": [],
-  "author": "",
+  "author": "AKOU Studio",
   "license": "ISC",
+  "build": {
+    "appId": "com.akou.akoucms",
+    "productName":"AKOU Website CMS",
+    "asar": true,
+    "files": [
+      "app.asar",
+      "main.js",
+      "renderer.js",
+      "index.html",
+      "style.css",
+      "img/*",
+      "Pages/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "build"
+    },
+    "win": {
+      "icon": "img/icon.png"
+    }
+  },
   "devDependencies": {
     "electron": "^31.1.0",
+    "electron-builder": "^24.13.3",
     "electron-rebuild": "^3.2.9"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
+    "electron-log": "^5.1.7",
+    "electron-updater": "^6.2.1",
     "mariadb": "^3.3.1",
     "node-pty": "^1.0.0",
     "ssh2": "^1.15.0",
