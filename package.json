@@ -14,10 +14,9 @@
   "license": "ISC",
   "build": {
     "appId": "com.akou.akoucms",
-    "productName":"AKOU Website CMS",
+    "productName": "AKOU Website CMS",
     "asar": true,
     "files": [
-      "app.asar",
       "main.js",
       "renderer.js",
       "index.html",
@@ -25,6 +24,13 @@
       "img/*",
       "Pages/**/*",
       "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "AKKOU",
+        "repo": "Electron---Website-Manager"
+      }
     ],
     "directories": {
       "buildResources": "build",
@@ -41,14 +47,10 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
-    "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "electron-log": "^5.1.7",
     "electron-updater": "^6.2.1",
     "mariadb": "^3.3.1",
-    "node-pty": "^1.0.0",
-    "ssh2": "^1.15.0",
-    "xterm": "^5.3.0",
-    "xterm-addon-fit": "^0.8.0"
+    "ssh2": "^1.15.0"
   }
 }

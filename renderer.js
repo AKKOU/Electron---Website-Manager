@@ -185,7 +185,7 @@ function home_init(){
     if(isLogin){
         var time = new Date();
         document.getElementById('user-name').innerText = username;
-        document.getElementById('timenow').innerText = time.getFullYear() + "." + time.getMonth() + "." + time.getDay();
+        document.getElementById('timenow').innerText = time.getFullYear() + "." + (time.getMonth()+1) + "." + time.getDate();
     }
     else{
         document.getElementById('user-name').innerText = "請登入";
