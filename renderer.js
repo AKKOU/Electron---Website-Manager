@@ -934,7 +934,13 @@ function news_Edit(serialNum){
                             var r_value = row[0];
                             input_num.value = r_value.ID;
                             input_date.value = r_value.Date;
-                            input_content.value = r_value.Content;
+                            let content_text = String(r_value.Content);
+                            const formattedText = content_text
+                            .replace(/<li>/g, '')
+                            .replace(/<\/li>/g, '\n')
+                            .replace(/\n\s*\n/g, '\n')
+                            .trim();
+                            input_content.value = formattedText;
                             input_img.value = r_value.Image;
 
                             input_num.ariaReadOnly = true;
@@ -972,10 +978,16 @@ function news_Edit(serialNum){
                                 status = 0;
                             }
 
+                            const content_text = content.split('\n');
+                            let send_text = '';
+                            content_text.forEach((item) => {
+                                send_text += "<li>"+item+"</li>";
+                            })
+
                             if(serialNum == "new"){
                                 return conn.query(
                                     `INSERT INTO newsData(ID, Date, Content, Image, Status) VALUES (?, ?, ?, ?, ?);`,
-                                    [num, date, content, img, status]
+                                    [num, date, send_text, img, status]
                                 ).then(() => {
                                     conn.release();
                                     pool.end();
@@ -984,7 +996,7 @@ function news_Edit(serialNum){
                             else{
                                 return conn.query(
                                     `UPDATE newsData SET ID = ?, Date = ?, Content = ?, Image = ?, Status = ? WHERE ID = ?;`,
-                                    [num, date, content, img, status,serialNum]
+                                    [num, date, send_text, img, status,serialNum]
                                 ).then(() => {
                                     conn.release();
                                     pool.end();
