@@ -133,6 +133,10 @@ body{
     content: "更新消息管理";
 }
 
+#gallery-bt::after{
+    content: "作品集管理";
+}
+
 .nav_bt:hover{
     background-color: #333333;
     border-radius: 10px;

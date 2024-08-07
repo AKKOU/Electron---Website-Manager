@@ -2,6 +2,7 @@
 const { ipcRenderer } = require('electron');
 const { Client } = require('ssh2');
 const { setInterval } = require('timers');
+const {v4:uuidv4} = require('uuid');
 
 const crypto = require('crypto')
 const mariadb = require('mariadb');
@@ -28,6 +29,7 @@ var website_bt;
 var codemanage_bt;
 var admin_bt;
 var newsupdate_bt;
+var gallery_bt;
 var menu;
 //button array
 var buttons;
@@ -50,9 +52,10 @@ window.onload = function() {
     codemanage_bt = document.getElementById('codemanage-bt');
     admin_bt = document.getElementById('admin-bt');
     newsupdate_bt = document.getElementById('newsupdate-bt');
+    gallery_bt = document.getElementById('gallery-bt');
 
-    buttons = [menu_bt , home_bt , login_bt , website_bt , codemanage_bt , admin_bt , newsupdate_bt];
-    hidden_bt_array = [admin_bt , codemanage_bt , newsupdate_bt , website_bt];
+    buttons = [menu_bt , home_bt , login_bt , website_bt , codemanage_bt , admin_bt , newsupdate_bt,gallery_bt];
+    hidden_bt_array = [admin_bt , codemanage_bt , newsupdate_bt , website_bt,gallery_bt];
 
     console.log("load renderer")
 
@@ -113,6 +116,10 @@ window.onload = function() {
         loadPage('ssh');
     })
 
+    gallery_bt.addEventListener('click',function(){
+        loadPage('gallery');
+    })
+
 }
 
 function closeMenu(){
@@ -171,6 +178,9 @@ function loadPage(names){
                     
                 case 'ssh':
                     admin_init();
+                    break;
+                case 'gallery':
+                    gallery_init();
                     break;
             }
 
@@ -492,28 +502,102 @@ function web_edit(ID){
 
     pool.getConnection()
     .then(conn => {
-        return conn.query(`SELECT * FROM PageStatus WHERE ID = ${ID};`);
-    }).then(row => {
-        row.forEach(rows => {
-            value = rows['Status'];
-            if(value == 1){
-                value = 0;
-            }
-            else{
-                value = 1;
-            }
+        return conn.query(`SELECT * FROM PageStatus WHERE ID = ${ID};`)
+        .then(row => {
+            row.forEach(rows => {
+                value = rows['Status'];
+                if(value == 1){
+                    value = 0;
+                }
+                else{
+                    value = 1;
+                }
+            })
+            conn.release();
+            pool.end();
         })
     })
-    
     pool.getConnection()
     .then(conn => {
         return conn.query(
             `UPDATE PageStatus SET Status = ? WHERE ID = ?;`,
             [ value, ID]
-        );
+        ).then(() => {
+            conn.release();
+            pool.end();
+        })
     }).then(() => {
         loadPage('website');
     })
+}
+
+function gallery_init(){
+    var tablediv = document.querySelector('#web-content');
+
+    let pool = sql_connect();
+
+    pool.getConnection()
+    .then(conn => {
+        return conn.query('SELECT * FROM GalleryData')
+        .then(rows => {
+
+            var addbt = document.getElementById('addbt');
+            addbt.addEventListener('click',function(){
+                gallery_Edit('new');
+            })
+
+            rows.forEach(row => {
+                var content_div = document.createElement('tr');
+
+                var serialNum = document.createElement('td');
+                serialNum.textContent = row.ID;
+                content_div.appendChild(serialNum);
+                
+                var Name = document.createElement('td');
+                Name.textContent = row.Name;
+                content_div.appendChild(Name);
+                
+                var Type = document.createElement('td');
+                Type.textContent = row.Type;
+                content_div.appendChild(Type);
+                
+                var Status = document.createElement('td');
+                if(row.Status==1){
+                    Status.textContent = "顯示";
+                }
+                else{
+                    Status.textContent = "隱藏";
+                }
+                content_div.appendChild(Status);
+
+                var bt_td = document.createElement('td');
+                var button = document.createElement('button');
+
+                button.textContent = "編輯/更改";
+                button.classList.add("table_button");
+                button.id = row.serialNum;
+
+                button.addEventListener('click',function(){
+                    console.log(row.Name);
+                    gallery_Edit(row.Name);
+                })
+                bt_td.appendChild(button);
+                content_div.appendChild(bt_td);
+
+                tablediv.appendChild(content_div);
+            });
+
+            conn.release();
+            pool.end();
+        })
+        
+    })
+    .catch(err => {
+        conn.release();
+        pool.end();
+        alert("出現未知錯誤!");
+        console.log(err);
+    });
 }
 
 function codemanage_init(){
@@ -524,60 +608,66 @@ function codemanage_init(){
     pool.getConnection()
     .then(conn => {
         return conn.query('SELECT * FROM codeData')
-    })
-    .then(rows => {
+        .then(rows => {
 
-        var addbt = document.getElementById('addbt');
-        addbt.addEventListener('click',function(){
-            code_Edit('new');
-        })
-
-        rows.forEach(row => {
-            var content_div = document.createElement('tr');
-
-            var serialNum = document.createElement('td');
-            serialNum.textContent = row.serialNum;
-            content_div.appendChild(serialNum);
-            
-            var Name = document.createElement('td');
-            Name.textContent = row.Name;
-            content_div.appendChild(Name);
-            
-            var CodeLang = document.createElement('td');
-            CodeLang.textContent = row.CodeLang;
-            content_div.appendChild(CodeLang);
-            
-            var Type = document.createElement('td');
-            Type.textContent = row.Type;
-            content_div.appendChild(Type);
-            
-            var Status = document.createElement('td');
-            if(row.Status==1){
-                Status.textContent = "顯示";
-            }
-            else{
-                Status.textContent = "隱藏";
-            }
-            content_div.appendChild(Status);
-
-            var bt_td = document.createElement('td');
-            var button = document.createElement('button');
-
-            button.textContent = "編輯/更改";
-            button.classList.add("table_button");
-            button.id = row.serialNum;
-
-            button.addEventListener('click',function(){
-                console.log(row.serialNum);
-                code_Edit(row.serialNum);
+            var addbt = document.getElementById('addbt');
+            addbt.addEventListener('click',function(){
+                code_Edit('new');
             })
-            bt_td.appendChild(button);
-            content_div.appendChild(bt_td);
 
-            tablediv.appendChild(content_div);
-        });
+            rows.forEach(row => {
+                var content_div = document.createElement('tr');
+
+                var serialNum = document.createElement('td');
+                serialNum.textContent = row.serialNum;
+                content_div.appendChild(serialNum);
+                
+                var Name = document.createElement('td');
+                Name.textContent = row.Name;
+                content_div.appendChild(Name);
+                
+                var CodeLang = document.createElement('td');
+                CodeLang.textContent = row.CodeLang;
+                content_div.appendChild(CodeLang);
+                
+                var Type = document.createElement('td');
+                Type.textContent = row.Type;
+                content_div.appendChild(Type);
+                
+                var Status = document.createElement('td');
+                if(row.Status==1){
+                    Status.textContent = "顯示";
+                }
+                else{
+                    Status.textContent = "隱藏";
+                }
+                content_div.appendChild(Status);
+
+                var bt_td = document.createElement('td');
+                var button = document.createElement('button');
+
+                button.textContent = "編輯/更改";
+                button.classList.add("table_button");
+                button.id = row.serialNum;
+
+                button.addEventListener('click',function(){
+                    console.log(row.serialNum);
+                    code_Edit(row.serialNum);
+                })
+                bt_td.appendChild(button);
+                content_div.appendChild(bt_td);
+
+                tablediv.appendChild(content_div);
+            });
+
+            conn.release();
+            pool.end();
+        })
+        
     })
     .catch(err => {
+        conn.release();
+        pool.end();
         alert("出現未知錯誤!");
         console.log(err);
     });
@@ -591,66 +681,70 @@ function newsupdate_init(){
     pool.getConnection()
     .then(conn => {
         return conn.query('SELECT * FROM newsData')
-    })
-    .then(rows => {
+        .then(rows => {
 
-        var addbt = document.getElementById('addbt');
-        addbt.addEventListener('click',function(){
-            console.log("success");
-            news_Edit('new');
+            var addbt = document.getElementById('addbt');
+            addbt.addEventListener('click',function(){
+                console.log("success");
+                news_Edit('new');
+            })
+
+            rows.forEach(row => {
+                var content_div = document.createElement('tr');
+
+                var ID = document.createElement('td');
+                ID.textContent = row.ID;
+                content_div.appendChild(ID);
+                lastnum_news = row.ID;
+                
+                var Date = document.createElement('td');
+                Date.textContent = row.Date;
+                content_div.appendChild(Date);
+                
+                var Content = document.createElement('td');
+                let list_text = row.Content;
+                let $ = cheerio.load(list_text);
+                //顯示成li
+                $('li').each(function(i,elem){
+                    var li_ele = document.createElement('li');
+                    li_ele.textContent = $(this).text();
+                    li_ele.style.fontSize = '15px';
+                    Content.appendChild(li_ele);
+                })
+                content_div.appendChild(Content);
+                //狀態bar
+                var Status = document.createElement('td');
+                if(row.Status==1){
+                    Status.textContent = "顯示";
+                }
+                else{
+                    Status.textContent = "隱藏";
+                }
+                content_div.appendChild(Status);
+
+                var bt_td = document.createElement('td');
+                var button = document.createElement('button');
+
+                button.textContent = "編輯/更改";
+                button.classList.add("table_button");
+                button.id = row.ID;
+
+                button.addEventListener('click',function(){
+                    console.log(row.ID);
+                    news_Edit(row.ID);
+                })
+                bt_td.appendChild(button);
+                content_div.appendChild(bt_td);
+
+                tablediv.appendChild(content_div);
+            });
+            conn.release();
+            pool.end();
         })
-
-        rows.forEach(row => {
-            var content_div = document.createElement('tr');
-
-            var ID = document.createElement('td');
-            ID.textContent = row.ID;
-            content_div.appendChild(ID);
-            lastnum_news = row.ID;
-            
-            var Date = document.createElement('td');
-            Date.textContent = row.Date;
-            content_div.appendChild(Date);
-            
-            var Content = document.createElement('td');
-            let list_text = row.Content;
-            let $ = cheerio.load(list_text);
-            //顯示成li
-            $('li').each(function(i,elem){
-                var li_ele = document.createElement('li');
-                li_ele.textContent = $(this).text();
-                li_ele.style.fontSize = '15px';
-                Content.appendChild(li_ele);
-            })
-            content_div.appendChild(Content);
-            //狀態bar
-            var Status = document.createElement('td');
-            if(row.Status==1){
-                Status.textContent = "顯示";
-            }
-            else{
-                Status.textContent = "隱藏";
-            }
-            content_div.appendChild(Status);
-
-            var bt_td = document.createElement('td');
-            var button = document.createElement('button');
-
-            button.textContent = "編輯/更改";
-            button.classList.add("table_button");
-            button.id = row.ID;
-
-            button.addEventListener('click',function(){
-                console.log(row.ID);
-                news_Edit(row.ID);
-            })
-            bt_td.appendChild(button);
-            content_div.appendChild(bt_td);
-
-            tablediv.appendChild(content_div);
-        });
-    })
+    })  
     .catch(err => {
+        conn.release();
+        pool.end();
         alert("出現未知錯誤!");
         console.log(err);
     });
@@ -691,24 +785,26 @@ function code_Edit(serialNum){
 
                         pool.getConnection()
                         .then(conn => {
-                            return conn.query(`SELECT * FROM codeData WHERE serialNum = '${serialNum}'`);
-                        })
-                        .then(row => {
-                            var r_value = row[0];
-                            input_num.value = r_value.serialNum;
-                            input_name.value = r_value.Name;
-                            input_code.value = r_value.Code;
-                            input_link.value = r_value.Link;
-                            input_lang.value = r_value.CodeLang;
-                            input_type.value = r_value.Type;
+                            return conn.query(`SELECT * FROM codeData WHERE serialNum = '${serialNum}'`)
+                            .then(row => {
+                                var r_value = row[0];
+                                input_num.value = r_value.serialNum;
+                                input_name.value = r_value.Name;
+                                input_code.value = r_value.Code;
+                                input_link.value = r_value.Link;
+                                input_lang.value = r_value.CodeLang;
+                                input_type.value = r_value.Type;
 
-                            input_num.ariaReadOnly = true;
-                            if(r_value.Status==1){
-                                input_status.value = 'true';
-                            }
-                            else{
-                                input_status.value = 'false';
-                            }
+                                input_num.ariaReadOnly = true;
+                                if(r_value.Status==1){
+                                    input_status.value = 'true';
+                                }
+                                else{
+                                    input_status.value = 'false';
+                                }
+
+                                conn.release();
+                            })
                         })
                         .catch(err => {
                             alert("出現一些未知錯誤，請稍後重試!")
@@ -742,16 +838,23 @@ function code_Edit(serialNum){
                                 return conn.query(
                                     `INSERT INTO codeData(serialNum, Name, Code, Link, CodeLang, Type, Status) VALUES (?, ?, ?, ?, ?, ?, ?);`,
                                     [num, name, code, link, lang, type, status]
-                                );
+                                )
+                                .then(() => {
+                                    conn.release();
+                                })
                             }
                             else{
                                 return conn.query(
                                     `UPDATE codeData SET serialNum = ?, Name = ?, Code = ?, Link = ?, CodeLang = ?, Type = ?, Status = ? WHERE serialNum = ?;`,
                                     [num, name, code, link, lang, type, status, serialNum]
-                                );
+                                )
+                                .then(() => {
+                                    conn.release();
+                                })
                             }
                         })
                         .then(() => {
+                            pool.end();
                             loadPage('codemanage');
                         })
                         .catch(err => {
@@ -760,6 +863,8 @@ function code_Edit(serialNum){
                             }
                             else{
                                 alert("出現未知錯誤!");
+                                conn.release();
+                                pool.end();
                                 console.log(err);
                             }
                         })
@@ -841,7 +946,7 @@ function news_Edit(serialNum){
                             }
                         })
                         .catch(err => {
-                            alert("出現一些未知錯誤，請稍後重試!")
+                            alert("出現一些未知錯誤，請稍後重試!");
                             console.log(err);
                             loadPage('newsupdate');
                         })
@@ -871,17 +976,200 @@ function news_Edit(serialNum){
                                 return conn.query(
                                     `INSERT INTO newsData(ID, Date, Content, Image, Status) VALUES (?, ?, ?, ?, ?);`,
                                     [num, date, content, img, status]
-                                );
+                                ).then(() => {
+                                    conn.release();
+                                    pool.end();
+                                })
                             }
                             else{
                                 return conn.query(
                                     `UPDATE newsData SET ID = ?, Date = ?, Content = ?, Image = ?, Status = ? WHERE ID = ?;`,
                                     [num, date, content, img, status,serialNum]
-                                );
+                                ).then(() => {
+                                    conn.release();
+                                    pool.end();
+                                })
                             }
                         })
                         .then(() => {
                             loadPage('newsupdate');
+                        })
+                        .catch(err => {
+                            if(err.errno === 1062){
+                                alert("錯誤:編號重複!");
+                            }
+                            else{
+                                conn.release();
+                                pool.end();
+                                alert("出現未知錯誤!");
+                                console.log(err);
+                            }
+                        })
+                    })
+
+                    //刪除內容
+                    document.getElementById('delete_bt').addEventListener('click',function(){
+                        if(confirm("確定要刪除? 這動作無法回復。")){
+                            pool.getConnection()
+                            .then(conn => {
+                                return conn.query("DELETE FROM `newsData` WHERE ID = "+ serialNum);
+                            })
+                            .then(() => {
+                                loadPage('newsupdate');
+                            })
+                            .catch(err => {
+                                alert("出現錯誤，無法刪除!");
+                                console.log(err);
+                            })
+                        }
+                    })
+                })
+            })
+            .catch(err => {
+                alert("出現未知錯誤!");
+                console.log(err);
+            })
+}
+
+function gallery_Edit(serialNum){
+    fetch(`Pages/gallery/edit.html`)
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('main-page').innerHTML = data;
+                document.getElementById('main-page').scrollTop = 0;
+
+                return new Promise(reslove => {
+                    setTimeout(reslove,0);
+                })
+                .then(() => {
+
+                    //載入編輯畫面
+                    var title_text = document.getElementById('title-text');
+
+                    
+                    let pool = sql_connect();
+                    var input_num = document.getElementById('input-num');
+                    var input_name = document.getElementById('input-name');
+                    var input_nameEN = document.getElementById('input-nameEN');
+                    var input_description = document.getElementById('input-description');
+                    var input_descriptionEN = document.getElementById('input-descriptionEN');
+                    var input_folder = document.getElementById('input-folder');
+                    var input_link = document.getElementById('input-link');
+                    var input_feature = document.getElementById('input-feature');
+                    var input_featureEN = document.getElementById('input-featureEN');
+                    var input_lang = document.getElementById('input-lang');
+                    var input_type = document.getElementById('input-type');
+                    var input_status = document.getElementById('input-status');
+
+                    if(serialNum == "new"){
+                        const uuid = uuidv4();
+                        title_text.textContent = "新增內容";
+                        input_num.value = uuid;
+                    }
+                    else{
+                        title_text.textContent = `編輯內容 (${serialNum})`;
+
+                        pool.getConnection()
+                        .then(conn => {
+                            return conn.query(`SELECT * FROM GalleryData WHERE Name = '${serialNum}'`)
+                            .then(row => {
+
+
+                                var r_value = row[0];
+                                const data = r_value.Feature;
+                                let feature = '';
+                                let featureEn = '';
+
+                                input_num.value = r_value.ID;
+                                input_name.value = r_value.Name;
+                                input_nameEN.value = r_value.Name_EN;
+                                input_description.value = r_value.Description;
+                                input_descriptionEN.value = r_value.Description_EN;
+                                input_folder.value = r_value.ImageFolder;
+                                
+                                data.feature.forEach((item,index) => {
+                                    if(index!=0) feature += '\n' + item;
+                                    else feature += item;
+                                })
+                                data.feature_EN.forEach((item,index) => {
+                                    if(index!=0) featureEn += '\n' + item;
+                                    else featureEn += item;
+                                })
+
+                                input_feature.value = feature;
+                                input_featureEN.value = featureEn;
+
+                                input_lang.value = r_value.Lang;
+                                input_link.value = r_value.URL;
+                                input_type.value = r_value.Type;
+                                
+                                input_num.ariaReadOnly = true;
+                                if(r_value.Status==1){
+                                    input_status.value = 'true';
+                                }
+                                else{
+                                    input_status.value = 'false';
+                                }
+
+                                conn.release();
+                            })
+                        })
+                        .catch(err => {
+                            alert("出現一些未知錯誤，請稍後重試!")
+                            console.log(err);
+                            loadPage('gallery');
+                        })
+                    }
+
+                    //提交內容
+                    document.getElementById('submit-form').addEventListener('submit',function(event){
+
+                        event.preventDefault(); 
+
+                        pool.getConnection()
+                        .then(conn => {
+                            let num = document.getElementById('input-num').value;
+                            let name = document.getElementById('input-name').value;
+                            let nameEN = document.getElementById('input-nameEN').value;
+                            let description = document.getElementById('input-description').value;
+                            let descriptionEN = document.getElementById('input-descriptionEN').value;
+                            let folder = document.getElementById('input-folder').value;
+                            let link = document.getElementById('input-link').value;
+                            let Lang = document.getElementById('input-lang').value;
+                            let feature = document.getElementById('input-feature').value;
+                            let feature_EN = document.getElementById('input-featureEN').value;
+                            let type = document.getElementById('input-type').value;
+                            var status = document.getElementById('input-status').value;
+
+                            const jsonText = {
+                                feature: feature.split('\n'),
+                                feature_EN: feature_EN.split('\n')
+                            };
+                            const jsonData = JSON.stringify(jsonText,null);
+
+                            if(status == "true"){
+                                status = 1;
+                            }
+                            else{
+                                status = 0;
+                            }
+
+                            if(serialNum == "new"){
+                                return conn.query(
+                                    `INSERT INTO GalleryData(ID, Name, Name_EN, Description, Description_EN, Lang, ImageFolder, Feature, Type, URL, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+                                    [num, name, nameEN, description, descriptionEN, Lang, folder, jsonData, type, link, status]
+                                )
+                            }
+                            else{
+                                return conn.query(
+                                    `UPDATE GalleryData SET ID = ?, Name = ?, Name_EN = ?, Description = ?, Description_EN = ?, Lang = ?, ImageFolder = ?, Feature = ?, Type = ?, URL = ?, Status = ? WHERE Name = ?;`,
+                                    [num, name, nameEN, description, descriptionEN, Lang, folder, jsonData, type, link, status, serialNum]
+                                )
+                            }
+                        })
+                        .then(() => {
+                            pool.end();
+                            loadPage('gallery');
                         })
                         .catch(err => {
                             if(err.errno === 1062){
@@ -899,10 +1187,10 @@ function news_Edit(serialNum){
                         if(confirm("確定要刪除? 這動作無法回復。")){
                             pool.getConnection()
                             .then(conn => {
-                                return conn.query("DELETE FROM `newsData` WHERE ID = "+ serialNum);
+                                return conn.query("DELETE FROM `GalleryData` WHERE Name = '" + serialNum+"';");
                             })
                             .then(() => {
-                                loadPage('newsupdate');
+                                loadPage('gallery');
                             })
                             .catch(err => {
                                 alert("出現錯誤，無法刪除!");
