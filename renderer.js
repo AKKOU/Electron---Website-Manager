@@ -538,7 +538,7 @@ function gallery_init(){
 
     pool.getConnection()
     .then(conn => {
-        return conn.query('SELECT * FROM GalleryData')
+        return conn.query('SELECT * FROM GalleryData ORDER BY UpdateDate ASC;')
         .then(rows => {
 
             var addbt = document.getElementById('addbt');
@@ -915,7 +915,7 @@ function news_Edit(serialNum){
                     if(serialNum == "new"){
                         title_text.textContent = "新增內容";
                         document.getElementById('input-num').value = ('0000' + (parseInt(lastnum_news) + 1)).slice(-4);
-                        document.getElementById('input-date').value = new Date().toISOString().split('T')[0];;
+                        document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
                     }
                     else{
                         title_text.textContent = `編輯內容 (${serialNum})`;
@@ -1083,7 +1083,7 @@ function gallery_Edit(serialNum){
 
                         pool.getConnection()
                         .then(conn => {
-                            return conn.query(`SELECT * FROM GalleryData WHERE Name = '${serialNum}'`)
+                            return conn.query(`SELECT * FROM GalleryData WHERE Name = '${serialNum}';`)
                             .then(row => {
 
 
@@ -1152,6 +1152,8 @@ function gallery_Edit(serialNum){
                             let feature_EN = document.getElementById('input-featureEN').value;
                             let type = document.getElementById('input-type').value;
                             var status = document.getElementById('input-status').value;
+                            var DateText = new Date().toISOString().split('T');
+                            var currentDate = DateText[0] + " " + DateText[1].split('.')[0];
 
                             const jsonText = {
                                 feature: feature.split('\n'),
@@ -1168,14 +1170,14 @@ function gallery_Edit(serialNum){
 
                             if(serialNum == "new"){
                                 return conn.query(
-                                    `INSERT INTO GalleryData(ID, Name, Name_EN, Description, Description_EN, Lang, ImageFolder, Feature, Type, URL, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-                                    [num, name, nameEN, description, descriptionEN, Lang, folder, jsonData, type, link, status]
+                                    `INSERT INTO GalleryData(ID, Name, Name_EN, Description, Description_EN, Lang, ImageFolder, Feature, Type, URL, UpdateDate, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+                                    [num, name, nameEN, description, descriptionEN, Lang, folder, jsonData, type, link, currentDate, status]
                                 )
                             }
                             else{
                                 return conn.query(
                                     `UPDATE GalleryData SET ID = ?, Name = ?, Name_EN = ?, Description = ?, Description_EN = ?, Lang = ?, ImageFolder = ?, Feature = ?, Type = ?, URL = ?, Status = ? WHERE Name = ?;`,
-                                    [num, name, nameEN, description, descriptionEN, Lang, folder, jsonData, type, link, status, serialNum]
+                                    [num, name, nameEN, description, descriptionEN, Lang, folder, jsonData, type, link , status, serialNum]
                                 )
                             }
                         })
