@@ -513,8 +513,6 @@ function web_edit(ID){
                     value = 1;
                 }
             })
-            conn.release();
-            pool.end();
         })
     })
     pool.getConnection()
@@ -522,10 +520,7 @@ function web_edit(ID){
         return conn.query(
             `UPDATE PageStatus SET Status = ? WHERE ID = ?;`,
             [ value, ID]
-        ).then(() => {
-            conn.release();
-            pool.end();
-        })
+        )
     }).then(() => {
         loadPage('website');
     })
@@ -1170,7 +1165,7 @@ function gallery_Edit(serialNum){
 
                             if(serialNum == "new"){
                                 return conn.query(
-                                    `INSERT INTO GalleryData(ID, Name, Name_EN, Description, Description_EN, Lang, ImageFolder, Feature, Type, URL, UpdateDate, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+                                    `INSERT INTO GalleryData(ID, Name, Name_EN, Description, Description_EN, Lang, ImageFolder, Feature, Type, URL, UpdateDate, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
                                     [num, name, nameEN, description, descriptionEN, Lang, folder, jsonData, type, link, currentDate, status]
                                 )
                             }
